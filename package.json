@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "build-app": "tauri build && powershell ./scripts/post-build.ps1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.10.0",

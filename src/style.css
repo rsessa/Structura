@@ -9,13 +9,17 @@
   --text-secondary: #8b949e;
   --accent: #58a6ff;
   --accent-hover: #79c0ff;
+  --color-success: #238636;
+  --color-success-hover: #2ea043;
   font-family: 'Inter', sans-serif;
   color: var(--text-primary);
   background-color: var(--bg-color);
   box-sizing: border-box;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: inherit;
   margin: 0;
   padding: 0;
@@ -42,11 +46,12 @@ body {
   border-bottom: 1px solid var(--border-color);
   padding: 0 1rem;
   height: 48px;
-  -webkit-app-region: drag; /* Electron/Tauri drag compatibility */
+  -webkit-app-region: drag;
+  /* Electron/Tauri drag compatibility */
 }
 
 /* Make sure buttons/interactive elements within drag region don't drag */
-.header > * {
+.header>* {
   -webkit-app-region: no-drag;
 }
 
@@ -56,6 +61,7 @@ body {
   overflow-x: auto;
   scrollbar-width: none;
 }
+
 .tabs-container::-webkit-scrollbar {
   display: none;
 }
@@ -86,6 +92,7 @@ body {
 .toolbar {
   display: flex;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .btn {
@@ -150,7 +157,8 @@ body {
   align-items: center;
   overflow: auto;
   padding: 2rem;
-  background: #ffffff; /* White bg for better diagram contrast, unless dark theme is requested */
+  background: #ffffff;
+  /* White bg for better diagram contrast, unless dark theme is requested */
 }
 
 /* Optional: Subtle animation for the diagram rendering */
@@ -159,8 +167,15 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .error-msg {

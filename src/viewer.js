@@ -85,12 +85,12 @@ async function exportToEnclave() {
     const svgEl = mermaidContainer.querySelector('svg');
     if (!svgEl) return;
 
+    const originalText = exportEnclaveBtn.innerHTML;
     try {
         const svgData = new XMLSerializer().serializeToString(svgEl);
         await writeTextFile('C:\\scripts\\DataAnalisis\\inbox_diagram.svg', svgData);
 
         // UI Feedback
-        const originalText = exportEnclaveBtn.innerHTML;
         exportEnclaveBtn.textContent = 'Diagrama enviado a Enclave';
         setTimeout(async () => {
             await getCurrentWindow().close();
