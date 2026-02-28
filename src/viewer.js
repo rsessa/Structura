@@ -143,28 +143,32 @@ async function generatePngBlob() {
     if (!svgEl) throw new Error('No SVG found');
 
     // 1. Detect actual content bounds using getBBox
-    // This gives us the rectangle that actually contains the diagram elements
-    const bbox = svgEl.getBBox();
-    const margin = 30; // Margin in pixels
+    let bbox = svgEl.getBBox();
+    if (bbox.width === 0 || bbox.height === 0) {
+        const v = svgEl.viewBox.baseVal;
+        bbox = { x: v.x, y: v.y, width: v.width, height: v.height };
+    }
+    const margin = 30; // Total margin from the canvas edge to the diagram
+    const padding = 10; // Extra safety buffer to avoid cutting strokes/text
 
-    const contentW = bbox.width;
-    const contentH = bbox.height;
+    // Adjusted content bounds including padding
+    const adjX = bbox.x - padding;
+    const adjY = bbox.y - padding;
+    const adjW = bbox.width + (padding * 2);
+    const adjH = bbox.height + (padding * 2);
 
     // Final dimensions for the canvas
-    const finalW = contentW + (margin * 2);
-    const finalH = contentH + (margin * 2);
+    const finalW = adjW + (margin * 2);
+    const finalH = adjH + (margin * 2);
 
     // 2. Clone and prepare for rendering
     const clonedSvg = svgEl.cloneNode(true);
 
-    // We must ensure the cloned SVG has the correct internal dimensions
-    // Mermaid SVGs often have a viewBox. We'll use the original viewBox 
-    // to ensure internal coordinates are preserved.
     const vBox = svgEl.viewBox.baseVal;
     const vBoxX = vBox.x || 0;
     const vBoxY = vBox.y || 0;
-    const vBoxW = vBox.width || contentW;
-    const vBoxH = vBox.height || contentH;
+    const vBoxW = vBox.width || adjW;
+    const vBoxH = vBox.height || adjH;
 
     clonedSvg.setAttribute('width', vBoxW);
     clonedSvg.setAttribute('height', vBoxH);
@@ -190,11 +194,17 @@ async function generatePngBlob() {
             ctx.fillRect(0, 0, finalW, finalH);
 
             ctx.save();
-            // 3. Translate to account for the margin and the content's top-left offset
-            // Content starts at (bbox.x, bbox.y) in SVG space.
-            // We want it at (margin, margin) in Canvas space.
-            // So translation = (margin - bbox.x, margin - bbox.y)
-            ctx.translate(margin - bbox.x, margin - bbox.y);
+            // 3. Translate to account for margin, padding, and viewBox offset
+            // We want (adjX, adjY) in SVG space to end up at (margin, margin) in Canvas space.
+            // The image represents region (vBoxX, vBoxY, vBoxW, vBoxH).
+            // Image coordinate (x_img) = SVG coordinate (x_svg) - vBoxX.
+            // We want SVG coordinate adjX (which is x_img = adjX - vBoxX) to be at 'margin' in canvas.
+            // So: (adjX - vBoxX) + translation = margin
+            // translation = margin - (adjX - vBoxX)
+            const transX = margin - (adjX - vBoxX);
+            const transY = margin - (adjY - vBoxY);
+
+            ctx.translate(transX, transY);
 
             ctx.drawImage(img, 0, 0, vBoxW, vBoxH);
             ctx.restore();
@@ -239,25 +249,36 @@ async function exportToEnclave() {
     const originalText = exportEnclaveBtn.innerHTML;
     try {
         // 1. Detect content bounds for SVG file export
-        const bbox = svgEl.getBBox();
+        let bbox = svgEl.getBBox();
+        if (bbox.width === 0) {
+            const v = svgEl.viewBox.baseVal;
+            bbox = { x: v.x, y: v.y, width: v.width, height: v.height };
+        }
+
         const margin = 30;
+        const padding = 10;
 
         // Prepare a cropped version of the SVG for the .svg file
         const croppedSvg = svgEl.cloneNode(true);
-        const finalW = bbox.width + (margin * 2);
-        const finalH = bbox.height + (margin * 2);
+        const adjX = bbox.x - padding;
+        const adjY = bbox.y - padding;
+        const adjW = bbox.width + (padding * 2);
+        const adjH = bbox.height + (padding * 2);
 
-        croppedSvg.setAttribute('viewBox', `${bbox.x - margin} ${bbox.y - margin} ${finalW} ${finalH}`);
+        const finalW = adjW + (margin * 2);
+        const finalH = adjH + (margin * 2);
+
+        // The new viewBox should center the content with the total margin (margin + padding)
+        croppedSvg.setAttribute('viewBox', `${adjX - margin} ${adjY - margin} ${finalW} ${finalH}`);
         croppedSvg.setAttribute('width', finalW);
         croppedSvg.setAttribute('height', finalH);
         croppedSvg.style.backgroundColor = '#ffffff';
 
-        // Raw SVG for raw format compatibility (now cropped too)
+        // Raw SVG for raw format compatibility (now accurately cropped)
         const svgData = new XMLSerializer().serializeToString(croppedSvg);
         await writeTextFile('C:\\scripts\\DataAnalisis\\inbox_diagram.svg', svgData);
 
         // 2. REAL IMAGE for Enclave (Quill) compatibility
-        // generatePngBlob now handles cropping internally
         const blob = await generatePngBlob();
 
         // Convert Blob to Base64 for HTML embedding
