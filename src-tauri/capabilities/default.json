@@ -7,6 +7,7 @@
     "viewer"
   ],
   "permissions": [
-    "core:default"
+    "core:default",
+    "shell:default"
   ]
 }

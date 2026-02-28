@@ -1,4 +1,5 @@
 import { emit } from '@tauri-apps/api/event';
+import { open } from '@tauri-apps/plugin-shell';
 
 // App State
 let tabs = [
@@ -12,6 +13,7 @@ const tabsContainer = document.getElementById('tabs');
 const addTabBtn = document.getElementById('add-tab');
 const copyCodeBtn = document.getElementById('copy-code');
 const formatCodeBtn = document.getElementById('format-code');
+const openDocsBtn = document.getElementById('open-docs');
 const editorTextarea = document.getElementById('editor-textarea');
 
 // Functions
@@ -136,6 +138,14 @@ formatCodeBtn.addEventListener('click', () => {
 
 addTabBtn.addEventListener('click', addTab);
 copyCodeBtn.addEventListener('click', copyCode);
+
+openDocsBtn.addEventListener('click', async () => {
+  try {
+    await open('https://mermaid.js.org/intro/');
+  } catch (err) {
+    console.error('Failed to open documentation:', err);
+  }
+});
 
 // Init
 editorTextarea.value = tabs[0].content;
