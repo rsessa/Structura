@@ -18,6 +18,7 @@ let activeTabId = 1;
 // DOM Elements
 const tabsContainer = document.getElementById('tabs');
 const copyDiagramBtn = document.getElementById('copy-diagram');
+const copyImageBtn = document.getElementById('copy-image');
 const exportEnclaveBtn = document.getElementById('export-enclave');
 const mermaidContainer = document.getElementById('mermaid-container');
 const errorAlert = document.getElementById('error-alert');
@@ -79,6 +80,60 @@ async function copySVG() {
 }
 
 copyDiagramBtn.addEventListener('click', copySVG);
+
+// Copy Diagram as PNG Image to clipboard
+async function copyImage() {
+    const svgEl = mermaidContainer.querySelector('svg');
+    if (!svgEl) return;
+
+    try {
+        const svgData = new XMLSerializer().serializeToString(svgEl);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+
+        // Get dimensions from SVG
+        const svgSize = svgEl.getBoundingClientRect();
+        const padding = 40; // Add some padding
+        canvas.width = svgSize.width + padding;
+        canvas.height = svgSize.height + padding;
+
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        img.onload = async () => {
+            // Fill white background for the PNG
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw SVG onto canvas
+            ctx.drawImage(img, padding / 2, padding / 2);
+
+            canvas.toBlob(async (blob) => {
+                try {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]);
+
+                    // UI Feedback
+                    const originalText = copyImageBtn.textContent;
+                    copyImageBtn.textContent = '¡Imagen Copiada!';
+                    setTimeout(() => copyImageBtn.textContent = originalText, 2000);
+                } catch (clipboardErr) {
+                    console.error('Clipboard write failed:', clipboardErr);
+                } finally {
+                    URL.revokeObjectURL(url);
+                }
+            }, 'image/png');
+        };
+
+        img.src = url;
+    } catch (err) {
+        console.error('Failed to copy image:', err);
+    }
+}
+
+copyImageBtn.addEventListener('click', copyImage);
 
 // Export SVG to Enclave
 async function exportToEnclave() {
