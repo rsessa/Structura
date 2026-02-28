@@ -1,4 +1,6 @@
 import { listen } from '@tauri-apps/api/event';
+import { writeTextFile } from '@tauri-apps/plugin-fs';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import mermaid from 'mermaid';
 
 // Initialize Mermaid
@@ -16,6 +18,7 @@ let activeTabId = 1;
 // DOM Elements
 const tabsContainer = document.getElementById('tabs');
 const copyDiagramBtn = document.getElementById('copy-diagram');
+const exportEnclaveBtn = document.getElementById('export-enclave');
 const mermaidContainer = document.getElementById('mermaid-container');
 const errorAlert = document.getElementById('error-alert');
 
@@ -76,6 +79,30 @@ async function copySVG() {
 }
 
 copyDiagramBtn.addEventListener('click', copySVG);
+
+// Export SVG to Enclave
+async function exportToEnclave() {
+    const svgEl = mermaidContainer.querySelector('svg');
+    if (!svgEl) return;
+
+    try {
+        const svgData = new XMLSerializer().serializeToString(svgEl);
+        await writeTextFile('C:\\scripts\\DataAnalisis\\inbox_diagram.svg', svgData);
+
+        // UI Feedback
+        const originalText = exportEnclaveBtn.innerHTML;
+        exportEnclaveBtn.textContent = 'Diagrama enviado a Enclave';
+        setTimeout(async () => {
+            await getCurrentWindow().close();
+        }, 2000);
+    } catch (err) {
+        console.error('Failed to export to Enclave:', err);
+        errorAlert.textContent = 'Error exportando';
+        setTimeout(() => exportEnclaveBtn.innerHTML = originalText, 2000);
+    }
+}
+
+exportEnclaveBtn.addEventListener('click', exportToEnclave);
 
 // IPC Listeners
 listen('update-diagram', (event) => {
