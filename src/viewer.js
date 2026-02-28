@@ -88,7 +88,21 @@ async function exportToEnclave() {
     const originalText = exportEnclaveBtn.innerHTML;
     try {
         const svgData = new XMLSerializer().serializeToString(svgEl);
+
+        // Export 1: Raw SVG for compatibility
         await writeTextFile('C:\\scripts\\DataAnalisis\\inbox_diagram.svg', svgData);
+
+        // Export 2: HTML Image for Enclave (Quill) compatibility
+        // Using Base64 to ensure it's treated as an image asset
+        const utf8Bytes = new TextEncoder().encode(svgData);
+        let binary = '';
+        const bytes = new Uint8Array(utf8Bytes);
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        const base64 = btoa(binary);
+        const htmlContent = `<img src="data:image/svg+xml;base64,${base64}" />`;
+        await writeTextFile('C:\\scripts\\DataAnalisis\\inbox.html', htmlContent);
 
         // UI Feedback
         exportEnclaveBtn.textContent = 'Diagrama enviado a Enclave';
