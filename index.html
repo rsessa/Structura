@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editor</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+</head>
+<body data-tauri-drag-region>
+    <div class="app-container">
+        <header data-tauri-drag-region class="header">
+            <div class="tabs-container" id="tabs">
+                <button class="tab active" data-tab-id="1">Diagrama 1</button>
+            </div>
+            <div class="toolbar">
+                <button id="add-tab" class="btn primary">Añadir Pestaña</button>
+                <button id="format-code" class="btn">Autoformatear</button>
+                <button id="copy-code" class="btn">Copiar Código</button>
+            </div>
+        </header>
+        <main class="editor-main">
+            <textarea id="editor-textarea" class="code-editor" placeholder="Escribe tu código Mermaid.js aquí..."></textarea>
+        </main>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
