@@ -18,6 +18,7 @@ Construida con **Tauri v2**, **Vite**, y **Vanilla JS**, usa HTML, CSS y JavaScr
   - Incluye un motor de **Autoformateado** con un solo clic que estructura tu código Mermaid adecuadamente.
   - Soporta el estándar base `sequenceDiagram` y todo el conjunto oficial de Mermaid.
 - **Exportación Rápida**: Copia el código fuente o exporta el gráfico final renderizado como `SVG` directamente a tu portapapeles.
+- **Integración con Enclave**: Exporta tu diagrama generado de forma directa y nativa al directorio de entrada de Enclave (`C:\scripts\DataAnalisis\inbox_diagram.svg`), facilitando un flujo de trabajo sin conexión.
 
 ---
 
