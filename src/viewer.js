@@ -17,11 +17,20 @@ let activeTabId = 1;
 
 // DOM Elements
 const tabsContainer = document.getElementById('tabs');
-const copyDiagramBtn = document.getElementById('copy-diagram');
+const resetViewBtn = document.getElementById('reset-view');
 const copyImageBtn = document.getElementById('copy-image');
 const exportEnclaveBtn = document.getElementById('export-enclave');
+const viewerMain = document.querySelector('.viewer-main');
 const mermaidContainer = document.getElementById('mermaid-container');
 const errorAlert = document.getElementById('error-alert');
+
+// Zoom & Pan State
+let scale = 1;
+let translateX = 0;
+let translateY = 0;
+let isPanning = false;
+let startX = 0;
+let startY = 0;
 
 function renderTabs() {
     tabsContainer.innerHTML = '';
@@ -57,31 +66,78 @@ async function renderDiagram() {
     } catch (error) {
         console.error('Mermaid Parsing Error:', error);
         errorAlert.textContent = 'Syntax Error';
-        // Let the previous SVG remain to avoid flashing on every typo
     }
 }
 
-// Copy SVG to clipboard
-async function copySVG() {
+function updateTransform() {
+    mermaidContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+}
+
+function resetView() {
     const svgEl = mermaidContainer.querySelector('svg');
-    if (!svgEl) return;
-
-    try {
-        const svgData = new XMLSerializer().serializeToString(svgEl);
-        await navigator.clipboard.writeText(svgData);
-
-        // UI Feedback
-        const originalText = copyDiagramBtn.textContent;
-        copyDiagramBtn.textContent = '¡Copiado!';
-        setTimeout(() => copyDiagramBtn.textContent = originalText, 2000);
-    } catch (err) {
-        console.error('Failed to copy SVG:', err);
+    if (!svgEl) {
+        scale = 1;
+        translateX = 0;
+        translateY = 0;
+        updateTransform();
+        return;
     }
+
+    // Get original dimensions
+    const originalWidth = svgEl.viewBox.baseVal.width || svgEl.width.baseVal.value || 800;
+    const originalHeight = svgEl.viewBox.baseVal.height || svgEl.height.baseVal.value || 600;
+
+    const containerWidth = viewerMain.clientWidth;
+    const containerHeight = viewerMain.clientHeight;
+
+    // Calculate scale to fit with margin
+    const padding = 40;
+    const scaleX = (containerWidth - padding) / originalWidth;
+    const scaleY = (containerHeight - padding) / originalHeight;
+
+    scale = Math.min(scaleX, scaleY, 1.5); // Max scale 1.5
+    translateX = 0;
+    translateY = 0;
+    updateTransform();
 }
 
-copyDiagramBtn.addEventListener('click', copySVG);
+resetViewBtn.addEventListener('click', resetView);
 
-// Copy Diagram as PNG Image to clipboard
+// Mouse Interaction for Zoom & Pan
+viewerMain.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const zoomSpeed = 0.1;
+    if (e.deltaY < 0) {
+        scale += zoomSpeed;
+    } else {
+        scale = Math.max(0.1, scale - zoomSpeed);
+    }
+    updateTransform();
+}, { passive: false });
+
+viewerMain.addEventListener('mousedown', (e) => {
+    if (e.button === 0) { // Left click
+        isPanning = true;
+        startX = e.clientX - translateX;
+        startY = e.clientY - translateY;
+    }
+});
+
+window.addEventListener('mousemove', (e) => {
+    if (!isPanning) return;
+    translateX = e.clientX - startX;
+    translateY = e.clientY - startY;
+    updateTransform();
+});
+
+window.addEventListener('mouseup', () => {
+    isPanning = false;
+});
+
+// COPY SVG REMOVED BY USER REQUEST
+// copyDiagramBtn.addEventListener('click', copySVG);
+
+// Copy Diagram as PNG Image to clipboard with Window Resolution
 async function copyImage() {
     const svgEl = mermaidContainer.querySelector('svg');
     if (!svgEl) return;
@@ -92,22 +148,49 @@ async function copyImage() {
         const ctx = canvas.getContext('2d');
         const img = new Image();
 
-        // Get dimensions from SVG
-        const svgSize = svgEl.getBoundingClientRect();
-        const padding = 40; // Add some padding
-        canvas.width = svgSize.width + padding;
-        canvas.height = svgSize.height + padding;
+        // Resolution: Match current viewer container size as requested
+        const width = viewerMain.clientWidth;
+        const height = viewerMain.clientHeight;
+
+        // Use a multiplier for higher quality
+        const dpi = window.devicePixelRatio || 1;
+        canvas.width = width * dpi;
+        canvas.height = height * dpi;
+        ctx.scale(dpi, dpi);
 
         const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(svgBlob);
 
         img.onload = async () => {
-            // Fill white background for the PNG
+            // Fill white background
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, width, height);
 
-            // Draw SVG onto canvas
-            ctx.drawImage(img, padding / 2, padding / 2);
+            // Calculate scale to fit current zoom or just best fit?
+            // "La imagen exportada debe tener la resolucion de la ventana actual"
+            // We'll draw the container's visual state
+
+            const containerRect = viewerMain.getBoundingClientRect();
+            const svgRect = svgEl.getBoundingClientRect();
+
+            // Draw relative to center
+            const dx = (width / 2) + (translateX / scale);
+            const dy = (height / 2) + (translateY / scale);
+
+            // Actually, simpler: draw exactly what's visible
+            // We apply the current CSS transform to the context
+            ctx.save();
+            ctx.translate(width / 2 + translateX, height / 2 + translateY);
+            ctx.scale(scale, scale);
+
+            // We need to offset the SVG back since it's centered in the container
+            // Mermaid SVGs often have their own internal scaling.
+            // Let's just draw the SVG at its original size and let our transforms do the rest.
+            const originalWidth = svgEl.viewBox.baseVal.width || svgEl.width.baseVal.value;
+            const originalHeight = svgEl.viewBox.baseVal.height || svgEl.height.baseVal.value;
+
+            ctx.drawImage(img, -originalWidth / 2, -originalHeight / 2);
+            ctx.restore();
 
             canvas.toBlob(async (blob) => {
                 try {
@@ -115,12 +198,11 @@ async function copyImage() {
                         new ClipboardItem({ 'image/png': blob })
                     ]);
 
-                    // UI Feedback
                     const originalText = copyImageBtn.textContent;
                     copyImageBtn.textContent = '¡Imagen Copiada!';
                     setTimeout(() => copyImageBtn.textContent = originalText, 2000);
-                } catch (clipboardErr) {
-                    console.error('Clipboard write failed:', clipboardErr);
+                } catch (err) {
+                    console.error('Clipboard failed:', err);
                 } finally {
                     URL.revokeObjectURL(url);
                 }
