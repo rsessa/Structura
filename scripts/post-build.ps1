@@ -3,7 +3,7 @@
 
 $releaseDir = "src-tauri/target/release"
 $bundleDir = "$releaseDir/bundle/nsis"
-$sourceExe = "$releaseDir/Structura.exe"
+$sourceExe = "$releaseDir/app.exe"
 $destExe = "$bundleDir/Structura-Portable.exe"
 
 Write-Host "Verificando existencia de $sourceExe..."
