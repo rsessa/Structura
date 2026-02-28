@@ -142,34 +142,42 @@ async function generatePngBlob() {
     const svgEl = mermaidContainer.querySelector('svg');
     if (!svgEl) throw new Error('No SVG found');
 
-    // Clone to avoid modifying the live diagram
+    // 1. Detect actual content bounds using getBBox
+    // This gives us the rectangle that actually contains the diagram elements
+    const bbox = svgEl.getBBox();
+    const margin = 30; // Margin in pixels
+
+    const contentW = bbox.width;
+    const contentH = bbox.height;
+
+    // Final dimensions for the canvas
+    const finalW = contentW + (margin * 2);
+    const finalH = contentH + (margin * 2);
+
+    // 2. Clone and prepare for rendering
     const clonedSvg = svgEl.cloneNode(true);
 
-    // Get dimensions and viewBox info
+    // We must ensure the cloned SVG has the correct internal dimensions
+    // Mermaid SVGs often have a viewBox. We'll use the original viewBox 
+    // to ensure internal coordinates are preserved.
     const vBox = svgEl.viewBox.baseVal;
-    // Mermaid SVGs usually have a viewBox. Use it as reference for internal coordinates.
-    const internalW = vBox.width || 800;
-    const internalH = vBox.height || 600;
     const vBoxX = vBox.x || 0;
     const vBoxY = vBox.y || 0;
+    const vBoxW = vBox.width || contentW;
+    const vBoxH = vBox.height || contentH;
 
-    // Ensure cloned SVG has explicit intrinsic dimensions for the Image loader
-    clonedSvg.setAttribute('width', internalW);
-    clonedSvg.setAttribute('height', internalH);
+    clonedSvg.setAttribute('width', vBoxW);
+    clonedSvg.setAttribute('height', vBoxH);
 
     const svgData = new XMLSerializer().serializeToString(clonedSvg);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
 
-    // The user wants "la resolución de la ventana actual" (the viewport)
-    const vWidth = viewerMain.clientWidth;
-    const vHeight = viewerMain.clientHeight;
-
     // High quality multiplier
-    const dpi = window.devicePixelRatio || 2;
-    canvas.width = vWidth * dpi;
-    canvas.height = vHeight * dpi;
+    const dpi = 2;
+    canvas.width = finalW * dpi;
+    canvas.height = finalH * dpi;
     ctx.scale(dpi, dpi);
 
     const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
@@ -179,35 +187,27 @@ async function generatePngBlob() {
         img.onload = () => {
             // Background fill
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, vWidth, vHeight);
+            ctx.fillRect(0, 0, finalW, finalH);
 
             ctx.save();
-            // 1. Position at viewer center
-            ctx.translate(vWidth / 2, vHeight / 2);
-            // 2. Apply current user Pan
-            ctx.translate(translateX, translateY);
-            // 3. Apply current user Scale
-            ctx.scale(scale, scale);
+            // 3. Translate to account for the margin and the content's top-left offset
+            // Content starts at (bbox.x, bbox.y) in SVG space.
+            // We want it at (margin, margin) in Canvas space.
+            // So translation = (margin - bbox.x, margin - bbox.y)
+            ctx.translate(margin - bbox.x, margin - bbox.y);
 
-            // 4. Draw SVG centered
-            // We draw the image such that its internal center (calculated from viewBox) 
-            // aligns with our current (0,0) point.
-            // We must subtract vBoxX/vBoxY because the image starts rendering at (vBoxX, vBoxY) internally.
-            const drawX = -internalW / 2 - vBoxX;
-            const drawY = -internalH / 2 - vBoxY;
-
-            ctx.drawImage(img, drawX, drawY, internalW, internalH);
+            ctx.drawImage(img, 0, 0, vBoxW, vBoxH);
             ctx.restore();
 
+            URL.revokeObjectURL(url);
             canvas.toBlob((blob) => {
-                URL.revokeObjectURL(url);
                 if (blob) resolve(blob);
                 else reject(new Error('Canvas toBlob failed'));
             }, 'image/png');
         };
-        img.onerror = (e) => {
+        img.onerror = () => {
             URL.revokeObjectURL(url);
-            reject(e);
+            reject(new Error('Failed to load SVG image'));
         };
         img.src = url;
     });
@@ -238,11 +238,26 @@ async function exportToEnclave() {
 
     const originalText = exportEnclaveBtn.innerHTML;
     try {
-        // Raw SVG for raw format compatibility
-        const svgData = new XMLSerializer().serializeToString(svgEl);
+        // 1. Detect content bounds for SVG file export
+        const bbox = svgEl.getBBox();
+        const margin = 30;
+
+        // Prepare a cropped version of the SVG for the .svg file
+        const croppedSvg = svgEl.cloneNode(true);
+        const finalW = bbox.width + (margin * 2);
+        const finalH = bbox.height + (margin * 2);
+
+        croppedSvg.setAttribute('viewBox', `${bbox.x - margin} ${bbox.y - margin} ${finalW} ${finalH}`);
+        croppedSvg.setAttribute('width', finalW);
+        croppedSvg.setAttribute('height', finalH);
+        croppedSvg.style.backgroundColor = '#ffffff';
+
+        // Raw SVG for raw format compatibility (now cropped too)
+        const svgData = new XMLSerializer().serializeToString(croppedSvg);
         await writeTextFile('C:\\scripts\\DataAnalisis\\inbox_diagram.svg', svgData);
 
-        // REAL IMAGE for Enclave (Quill) compatibility
+        // 2. REAL IMAGE for Enclave (Quill) compatibility
+        // generatePngBlob now handles cropping internally
         const blob = await generatePngBlob();
 
         // Convert Blob to Base64 for HTML embedding
