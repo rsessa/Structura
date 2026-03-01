@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Visor</title>
+    <title>Viewer</title>
     <link rel="stylesheet" href="/src/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
 </head>
@@ -11,14 +11,14 @@
     <div class="app-container">
         <header data-tauri-drag-region class="header">
             <div class="tabs-container" id="tabs">
-                <button class="tab active" data-tab-id="1">Diagrama 1</button>
+                <button class="tab active" data-tab-id="1">Diagram 1</button>
             </div>
             <div class="toolbar">
-                <button id="reset-view" class="btn primary">Reiniciar Vista</button>
-                <button id="copy-image" class="btn primary">Copiar Imagen</button>
+                <button id="reset-view" class="btn primary">Reset View</button>
+                <button id="copy-image" class="btn primary">Copy Image</button>
                 <button id="export-enclave" class="btn primary" style="background-color: var(--color-success); border-color: var(--color-success);">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: middle;"><path d="M12 2v20M17 5l-5-5-5 5"/></svg>
-                    Exportar a Enclave
+                    Export to Enclave
                 </button>
                 <div id="error-alert" class="error-msg"></div>
             </div>

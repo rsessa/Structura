@@ -8,10 +8,10 @@ mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
 // App State
 let tabs = [
-    { id: 1, name: 'Diagrama 1' }
+    { id: 1, name: 'Diagram 1' }
 ];
 let tabContents = {
-    1: 'sequenceDiagram\n\tAlice->>John: Hola\n\tJohn-->>Alice: ¡Bien!'
+    1: 'sequenceDiagram\n\tAlice->>John: Hello\n\tJohn-->>Alice: Good!'
 };
 let activeTabId = 1;
 
@@ -232,7 +232,7 @@ async function copyImage() {
         ]);
 
         const originalText = copyImageBtn.textContent;
-        copyImageBtn.textContent = '¡Imagen Copiada!';
+        copyImageBtn.textContent = 'Image Copied!';
         setTimeout(() => copyImageBtn.textContent = originalText, 2000);
     } catch (err) {
         console.error('Failed to copy image:', err);
@@ -293,13 +293,13 @@ async function exportToEnclave() {
         await writeTextFile('C:\\scripts\\DataAnalisis\\inbox.html', htmlContent);
 
         // UI Feedback
-        exportEnclaveBtn.textContent = 'Diagrama enviado a Enclave';
+        exportEnclaveBtn.textContent = 'Diagram Sent to Enclave';
         setTimeout(async () => {
             await getCurrentWindow().close();
         }, 2000);
     } catch (err) {
         console.error('Failed to export to Enclave:', err);
-        errorAlert.textContent = 'Error exportando';
+        errorAlert.textContent = 'Export Error';
         setTimeout(() => exportEnclaveBtn.innerHTML = originalText, 2000);
     }
 }
@@ -312,7 +312,7 @@ listen('update-diagram', (event) => {
 
     // Implicitly add tab if it doesn't exist
     if (!tabs.find(t => t.id === tabId)) {
-        tabs.push({ id: tabId, name: `Diagrama ${tabId}` });
+        tabs.push({ id: tabId, name: `Diagram ${tabId}` });
         renderTabs();
     }
 

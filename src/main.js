@@ -3,7 +3,7 @@ import { open } from '@tauri-apps/plugin-shell';
 
 // App State
 let tabs = [
-  { id: 1, name: 'Diagrama 1', content: 'sequenceDiagram\n\tAlice->>John: Hola\n\tJohn-->>Alice: ¡Bien!' }
+  { id: 1, name: 'Diagram 1', content: 'sequenceDiagram\n\tAlice->>John: Hello\n\tJohn-->>Alice: Good!' }
 ];
 let activeTabId = 1;
 let tabCounter = 1;
@@ -48,7 +48,7 @@ function addTab() {
   tabCounter++;
   const newTab = {
     id: tabCounter,
-    name: `Diagrama ${tabCounter}`,
+    name: `Diagram ${tabCounter}`,
     content: 'sequenceDiagram\n\tInit->>Action: Start'
   };
   tabs.push(newTab);
@@ -61,7 +61,7 @@ function copyCode() {
   navigator.clipboard.writeText(editorTextarea.value)
     .then(() => {
       const originalText = copyCodeBtn.textContent;
-      copyCodeBtn.textContent = '¡Copiado!';
+      copyCodeBtn.textContent = 'Copied!';
       setTimeout(() => copyCodeBtn.textContent = originalText, 2000);
     })
     .catch(err => console.error('Failed to copy: ', err));
@@ -132,7 +132,7 @@ formatCodeBtn.addEventListener('click', () => {
   editorTextarea.value = formatMermaidCode(editorTextarea.value);
   editorTextarea.dispatchEvent(new Event('input'));
   const originalText = formatCodeBtn.textContent;
-  formatCodeBtn.textContent = '¡Formateado!';
+  formatCodeBtn.textContent = 'Formatted!';
   setTimeout(() => formatCodeBtn.textContent = originalText, 2000);
 });
 

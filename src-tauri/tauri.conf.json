@@ -22,7 +22,7 @@
       },
       {
         "label": "viewer",
-        "title": "Visor",
+        "title": "Viewer",
         "url": "/viewer.html",
         "width": 800,
         "height": 600,
