@@ -1,64 +1,64 @@
 # Structura
 
-**Structura** es una aplicación de escritorio moderna, nativa y autocontenida diseñada para escribir, previsualizar y exportar diagramas de [Mermaid.js](https://mermaid.js.org/) en tiempo real sin requerir una conexión a Internet.
+**Structura** is a modern, native, and self-contained desktop application designed to write, preview, and export [Mermaid.js](https://mermaid.js.org/) diagrams in real time without requiring an internet connection.
 
-Construida con **Tauri v2**, **Vite**, y **Vanilla JS**, usa HTML, CSS y JavaScript crudo para mantener la máxima ligereza y eficiencia energética, todo empaquetado bajo un backend nativo de Rust ultrarrápido.
+Built with **Tauri v2**, **Vite**, and **Vanilla JS**, it uses raw HTML, CSS, and JavaScript to maintain maximum lightness and energy efficiency, all packaged under an ultrafast native Rust backend.
 
 ![Structura Icon](src-tauri/icons/128x128.png)
 
-## 🚀 Características Principales
+## 🚀 Key Features
 
-- **Arquitectura de Dos Ventanas**: Separa tu área de trabajo usando monitores duales de forma nativa.
-  - **Ventana 1 (Editor)**: Un editor de texto oscuro enfocado en el código.
-  - **Ventana 2 (Visor)**: Un lienzo expansivo que reacciona instantáneamente a cada pulsación de tu teclado.
-- **Offline por Diseño**: Toda la biblioteca de visualización de Mermaid está insertada en la aplicación. No se bloquean recursos por CORS ni hay tiempos de respuesta de servidores CDN.
-- **Sistema de Pestañas**: Permite trabajar en múltiples diagramas en paralelo, sincronizando su visualización en vivo entre ambas ventanas.
-- **Smart Editor**: 
-  - Manejo real e inteligente de Indentaciones (`Tab` funciona como se espera).
-  - Incluye un motor de **Autoformateado** con un solo clic que estructura tu código Mermaid adecuadamente.
-  - Soporta el estándar base `sequenceDiagram` y todo el conjunto oficial de Mermaid.
-- **Exportación Rápida**: Copia el código fuente o exporta el gráfico final renderizado como `SVG` directamente a tu portapapeles.
-- **Integración con Enclave**: Exporta tu diagrama generado de forma directa y nativa al directorio de entrada de Enclave (`C:\scripts\DataAnalisis\inbox_diagram.svg`), facilitando un flujo de trabajo sin conexión.
+- **Dual-Window Architecture**: Natively separates your workspace using dual monitors.
+  - **Window 1 (Editor)**: A dark, code-focused text editor.
+  - **Window 2 (Viewer)**: An expansive canvas that reacts instantly to every keystroke.
+- **Offline by Design**: The entire Mermaid visualization library is embedded in the app. No resources are blocked by CORS, and there are no CDN server response times.
+- **Tab System**: Work on multiple diagrams in parallel, syncing their live visualization between both windows.
+- **Smart Editor**:
+  - Real and smart Indentation handling (`Tab` works as expected).
+  - Includes a one-click **Auto-format** engine that structures your Mermaid code properly.
+  - Supports the base `sequenceDiagram` standard and the entire official Mermaid suite.
+- **Fast Export**: Copy the source code or export the final rendered graph as `SVG` directly to your clipboard.
+- **Enclave Integration**: Export your generated diagram directly and natively to the Enclave input directory (`C:\scripts\DataAnalisis\inbox_diagram.svg`), facilitating an offline workflow.
 
 ---
 
-## 🛠️ Entorno de Desarrollo
+## 🛠️ Development Environment
 
-Structura es muy fácil de modificar y compilar. 
+Structura is very easy to modify and build.
 
-**Requisitos previos:**
-1. [Node.js](https://nodejs.org/en) (v20 o superior).
-2. Entorno [Tauri CLI](https://tauri.app/v1/guides/getting-started/prerequisites) con Rust/Cargo instalado (vía `rustup`).
+**Prerequisites:**
+1. [Node.js](https://nodejs.org/en) (v20 or higher).
+2. [Tauri CLI](https://tauri.app/v1/guides/getting-started/prerequisites) environment with Rust/Cargo installed (via `rustup`).
 
-### Instalación de dependencias
+### Installing dependencies
 ```bash
 npm install
 ```
 
-### Modo de desarrollo
-Inicia un servidor web estático conectado en vivo al empaquetador de ventanas nativo de Tauri. Presenciarás todos los cambios al instante en formato app:
+### Development mode
+Starts a static web server live-connected to the native Tauri window packager. You will witness all changes instantly in app format:
 ```bash
 npm run tauri dev
 ```
 
 ---
 
-## 📦 Compilación y Empaquetado
+## 📦 Build and Packaging
 
-Puedes generar la aplicación de escritorio tú mismo para entregarla. 
+You can generate the desktop application yourself for distribution.
 
-### 1. Instalador Estándar de Windows (.exe MSI/NSIS)
-Produce el instalador oficial que añade Structura a los programas de Windows (Menú Inicio, Desinstalación clásica, etc.):
+### 1. Standard Windows Installer (.exe MSI/NSIS)
+Produces the official installer that adds Structura to Windows programs (Start Menu, Classic Uninstall, etc.):
 ```bash
 npm run tauri build
 ```
-El instalador se guarda en `src-tauri/target/release/bundle/nsis/`.
+The installer is saved in `src-tauri/target/release/bundle/nsis/`.
 
-### 2. Versión Standalone / Portable (.exe Directo)
-Si solo quieres pasarle la aplicación a un compañero o usarla desde un pendrive **sin requerir ninguna instalación previa en Windows**, simplemente ubica el compilado subyacente que genera Rust.
+### 2. Standalone / Portable Version (.exe Direct)
+If you just want to pass the app to a colleague or use it from a flash drive **without requiring any prior installation on Windows**, simply locate the underlying executable generated by Rust.
 
-Tras ejecutar el proceso de Build de arriba, siempre se encuentra en:
+After running the Build process above, it is always found at:
 ```
 src-tauri/target/release/app.exe
 ```
-**(Solo cambia de nombre ese archivo a `Structura-Portable.exe` y listo).*
+**(Just rename that file to `Structura-Portable.exe` and you are good to go).*
