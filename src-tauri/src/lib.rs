@@ -17,7 +17,7 @@ pub fn run() {
       let args: Vec<String> = std::env::args().collect();
       let enclave_mode = args.contains(&"--enclave-mode".to_string());
 
-      if let Some(monitor) = app.get_webview_window("editor").and_then(|w| w.current_monitor().ok().flatten()) {
+      if let Some(monitor) = app.handle().primary_monitor().ok().flatten() {
           let screen_size = monitor.size();
           let screen_pos = monitor.position();
           
